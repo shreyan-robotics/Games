@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎣 Fishing Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(to bottom, #87CEEB 0%, #4A90E2 50%, #2E5C8A 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .game-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        h1 {
+            color: #2E5C8A;
+            margin-bottom: 20px;
+            font-size: 2.5em;
+        }
+
+        .score {
+            font-size: 1.5em;
+            color: #2E5C8A;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+
+        .game-area {
+            margin: 30px 0;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .message {
+            font-size: 1.3em;
+            margin: 20px 0;
+            color: #333;
+            min-height: 60px;
+        }
+
+        .fish-display {
+            font-size: 4em;
+            margin: 20px 0;
+            animation: bounce 0.5s ease;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        button {
+            background: #4A90E2;
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2em;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background: #357ABD;
+            transform: scale(1.05);
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: scale(1);
+        }
+
+        .catch-button {
+            background: #FF6B6B;
+            font-size: 1.5em;
+            padding: 20px 60px;
+            animation: pulse 0.5s ease infinite;
+        }
+
+        .catch-button:hover {
+            background: #FF5252;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .result {
+            font-size: 1.4em;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+
+        .success {
+            color: #4CAF50;
+        }
+
+        .failure {
+            color: #FF6B6B;
+        }
+
+        .timer-bar {
+            width: 100%;
+            height: 10px;
+            background: #ddd;
+            border-radius: 5px;
+            margin: 20px 0;
+            overflow: hidden;
+            display: none;
+        }
+
+        .timer-fill {
+            height: 100%;
+            background: linear-gradient(to right, #4CAF50, #FFC107, #FF6B6B);
+            width: 100%;
+            transition: width linear;
+        }
+
+        .instructions {
+            color: #666;
+            margin: 20px 0;
+            font-size: 1em;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🎣 Fishing Game</h1>
+        <div class="score">Score: <span id="score">0</span></div>
+        
+        <div class="instructions">
+            Cast your line and click the button when a fish bites!<br>
+            You have <strong>1.5 seconds</strong> to react!
+        </div>
+
+        <div class="game-area">
+            <div class="message" id="message">Ready to fish?</div>
+            <div class="fish-display" id="fish"></div>
+            <div class="timer-bar" id="timerBar">
+                <div class="timer-fill" id="timerFill"></div>
+            </div>
+            <div class="result" id="result"></div>
+        </div>
+
+        <button id="actionButton" onclick="handleAction()">🎣 Cast Line</button>
+    </div>
+
+    <script>
+        const fishTypes = [
+            "🐟 Bass",
+            "🐠 Clownfish", 
+            "🐡 Pufferfish",
+            "🦈 Shark",
+            "🐙 Octopus",
+            "🦑 Squid"
+        ];
+
+        let score = 0;
+        let gameState = 'ready'; // ready, waiting, biting
+        let biteTime = 0;
+        let timerInterval = null;
+
+        function handleAction() {
+            if (gameState === 'ready') {
+                castLine();
+            } else if (gameState === 'biting') {
+                catchFish();
+            }
+        }
+
+        function castLine() {
+            gameState = 'waiting';
+            document.getElementById('message').textContent = 'Line cast! Waiting for a bite...';
+            document.getElementById('fish').textContent = '';
+            document.getElementById('result').textContent = '';
+            document.getElementById('actionButton').disabled = true;
+            document.getElementById('timerBar').style.display = 'none';
+
+            // Random wait time between 2-6 seconds
+            const waitTime = Math.random() * 4000 + 2000;
+
+            setTimeout(() => {
+                fishBites();
+            }, waitTime);
+        }
+
+        function fishBites() {
+            gameState = 'biting';
+            const fish = fishTypes[Math.floor(Math.random() * fishTypes.length)];
+            
+            document.getElementById('message').textContent = '⚡ A fish is biting! CLICK FAST!';
+            document.getElementById('fish').textContent = fish;
+            document.getElementById('actionButton').textContent = '🎯 CATCH!';
+            document.getElementById('actionButton').disabled = false;
+            document.getElementById('actionButton').className = 'catch-button';
+            
+            // Show and animate timer bar
+            document.getElementById('timerBar').style.display = 'block';
+            const timerFill = document.getElementById('timerFill');
+            timerFill.style.transition = 'width 1.5s linear';
+            timerFill.style.width = '100%';
+            
+            // Force reflow
+            setTimeout(() => {
+                timerFill.style.width = '0%';
+            }, 10);
+
+            biteTime = Date.now();
+
+            // Auto-fail after 1.5 seconds
+            setTimeout(() => {
+                if (gameState === 'biting') {
+                    missedFish(fish);
+                }
+            }, 1500);
+        }
+
+        function catchFish() {
+            const reactionTime = (Date.now() - biteTime) / 1000;
+            const fish = document.getElementById('fish').textContent;
+
+            if (reactionTime <= 1.5) {
+                score++;
+                document.getElementById('score').textContent = score;
+                document.getElementById('result').innerHTML = `<span class="success">✅ You caught the ${fish}! Nice catch! (${reactionTime.toFixed(2)}s)</span>`;
+                document.getElementById('message').textContent = 'Great job!';
+            }
+
+            resetGame();
+        }
+
+        function missedFish(fish) {
+            document.getElementById('result').innerHTML = `<span class="failure">❌ Too slow! The ${fish} got away!</span>`;
+            document.getElementById('message').textContent = 'Better luck next time!';
+            resetGame();
+        }
+
+        function resetGame() {
+            gameState = 'ready';
+            document.getElementById('actionButton').textContent = '🎣 Cast Line';
+            document.getElementById('actionButton').disabled = false;
+            document.getElementById('actionButton').className = '';
+            document.getElementById('timerBar').style.display = 'none';
+            
+            setTimeout(() => {
+                document.getElementById('fish').textContent = '';
+            }, 2000);
+        }
+
+        // Keyboard support - spacebar or enter
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' || e.code === 'Enter') {
+                e.preventDefault();
+                if (!document.getElementById('actionButton').disabled) {
+                    handleAction();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
