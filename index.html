@@ -159,7 +159,8 @@
         
         <div class="instructions">
             Cast your line and click the button when a fish bites!<br>
-            You have <strong>0.5 seconds</strong> to react!
+            You have <strong>0.5 seconds</strong> to react!<br>
+            <span style="color: #FF6B6B; font-size: 0.9em;">⚠️ No holding allowed - you must click AFTER the fish appears!</span>
         </div>
  
         <div class="game-area">
@@ -187,27 +188,21 @@
         let score = 0;
         let gameState = 'ready'; // ready, waiting, biting
         let biteTime = 0;
-        let timerInterval = null;
-        let mouseDown = false; // Track mouse state
-        let keyDown = false; // Track keyboard state
+        let inputWasDownBeforeBite = false; // Track if button/key was held BEFORE fish appeared
+        let hasClickedAfterBite = false; // Track if they've clicked since fish appeared
  
-        function handleAction(wasHolding) {
-            if (gameState === 'ready') {
-                castLine();
-            } else if (gameState === 'biting') {
-                // Only count if they clicked AFTER fish appeared (not holding)
-                if (!wasHolding) {
-                    catchFish();
-                }
-            }
-        }
+        // Track current input states
+        let mouseCurrentlyDown = false;
+        let keyCurrentlyDown = false;
+ 
+        const button = document.getElementById('actionButton');
  
         function castLine() {
             gameState = 'waiting';
             document.getElementById('message').textContent = 'Line cast! Waiting for a bite...';
             document.getElementById('fish').textContent = '';
             document.getElementById('result').textContent = '';
-            document.getElementById('actionButton').disabled = true;
+            button.disabled = true;
             document.getElementById('timerBar').style.display = 'none';
  
             // Random wait time between 2-6 seconds
@@ -222,16 +217,15 @@
             gameState = 'biting';
             const fish = fishTypes[Math.floor(Math.random() * fishTypes.length)];
             
-            // Take a snapshot of current mouse/key state
-            // If they were holding before fish appeared, they can't win
-            const wasMouseDown = mouseDown;
-            const wasKeyDown = keyDown;
+            // CRITICAL: Check if input was already down when fish appeared
+            inputWasDownBeforeBite = mouseCurrentlyDown || keyCurrentlyDown;
+            hasClickedAfterBite = false;
             
             document.getElementById('message').textContent = '⚡ A fish is biting! CLICK FAST!';
             document.getElementById('fish').textContent = fish;
-            document.getElementById('actionButton').textContent = '🎯 CATCH!';
-            document.getElementById('actionButton').disabled = false;
-            document.getElementById('actionButton').className = 'catch-button';
+            button.textContent = '🎯 CATCH!';
+            button.disabled = false;
+            button.className = 'catch-button';
             
             // Show and animate timer bar
             document.getElementById('timerBar').style.display = 'block';
@@ -239,15 +233,11 @@
             timerFill.style.transition = 'width 0.5s linear';
             timerFill.style.width = '100%';
             
-            // Force reflow
             setTimeout(() => {
                 timerFill.style.width = '0%';
             }, 10);
  
             biteTime = Date.now();
-            
-            // Store if they were cheating
-            window.wasHoldingBeforeBite = wasMouseDown || wasKeyDown;
  
             // Auto-fail after 0.5 seconds
             setTimeout(() => {
@@ -257,24 +247,41 @@
             }, 500);
         }
  
-        function catchFish() {
-            // Disable button immediately to prevent holding/spamming
-            document.getElementById('actionButton').disabled = true;
+        function attemptCatch() {
+            if (gameState !== 'biting') return;
+            
+            // Prevent multiple catches
+            if (hasClickedAfterBite) return;
+            hasClickedAfterBite = true;
             
             const reactionTime = (Date.now() - biteTime) / 1000;
             const fish = document.getElementById('fish').textContent;
  
+            // Check if they were cheating by holding before fish appeared
+            if (inputWasDownBeforeBite) {
+                document.getElementById('result').innerHTML = `<span class="failure">❌ CHEATER! You were holding before the fish! The ${fish} got away!</span>`;
+                document.getElementById('message').textContent = 'No holding allowed!';
+                resetGame();
+                return;
+            }
+ 
+            // Legitimate catch attempt
             if (reactionTime <= 0.5) {
                 score++;
                 document.getElementById('score').textContent = score;
-                document.getElementById('result').innerHTML = `<span class="success">✅ You caught the ${fish}! Nice catch! (${reactionTime.toFixed(2)}s)</span>`;
+                document.getElementById('result').innerHTML = `<span class="success">✅ You caught the ${fish}! Nice catch! (${reactionTime.toFixed(3)}s)</span>`;
                 document.getElementById('message').textContent = 'Great job!';
+            } else {
+                document.getElementById('result').innerHTML = `<span class="failure">❌ Too slow! The ${fish} got away! (${reactionTime.toFixed(3)}s)</span>`;
+                document.getElementById('message').textContent = 'Better luck next time!';
             }
  
             resetGame();
         }
  
         function missedFish(fish) {
+            if (hasClickedAfterBite) return; // Already handled
+            
             document.getElementById('result').innerHTML = `<span class="failure">❌ Too slow! The ${fish} got away!</span>`;
             document.getElementById('message').textContent = 'Better luck next time!';
             resetGame();
@@ -282,9 +289,9 @@
  
         function resetGame() {
             gameState = 'ready';
-            document.getElementById('actionButton').textContent = '🎣 Cast Line';
-            document.getElementById('actionButton').disabled = false;
-            document.getElementById('actionButton').className = '';
+            button.textContent = '🎣 Cast Line';
+            button.disabled = false;
+            button.className = '';
             document.getElementById('timerBar').style.display = 'none';
             
             setTimeout(() => {
@@ -292,36 +299,57 @@
             }, 2000);
         }
  
-        // Track mouse down/up
-        document.getElementById('actionButton').addEventListener('mousedown', () => {
-            mouseDown = true;
+        // Mouse tracking
+        button.addEventListener('mousedown', (e) => {
+            mouseCurrentlyDown = true;
         });
-        
-        document.getElementById('actionButton').addEventListener('mouseup', () => {
-            mouseDown = false;
-            if (!document.getElementById('actionButton').disabled) {
-                handleAction(window.wasHoldingBeforeBite);
+ 
+        button.addEventListener('mouseup', (e) => {
+            mouseCurrentlyDown = false;
+        });
+ 
+        // Click handler
+        button.addEventListener('click', (e) => {
+            if (gameState === 'ready') {
+                castLine();
+            } else if (gameState === 'biting') {
+                attemptCatch();
             }
         });
-        
-        // Track keyboard down/up
+ 
+        // Keyboard tracking
         document.addEventListener('keydown', (e) => {
             if (e.code === 'Space' || e.code === 'Enter') {
                 e.preventDefault();
-                if (!keyDown) {
-                    keyDown = true;
-                }
+                if (e.repeat) return; // Ignore key repeat
+                keyCurrentlyDown = true;
             }
         });
  
         document.addEventListener('keyup', (e) => {
             if (e.code === 'Space' || e.code === 'Enter') {
-                const wasDown = keyDown;
-                keyDown = false;
-                if (wasDown && !document.getElementById('actionButton').disabled) {
-                    handleAction(window.wasHoldingBeforeBite);
+                keyCurrentlyDown = false;
+                
+                // Trigger action on key release
+                if (!button.disabled) {
+                    if (gameState === 'ready') {
+                        castLine();
+                    } else if (gameState === 'biting') {
+                        attemptCatch();
+                    }
                 }
             }
+        });
+ 
+        // Track when mouse leaves button
+        button.addEventListener('mouseleave', () => {
+            mouseCurrentlyDown = false;
+        });
+ 
+        // Track focus loss
+        window.addEventListener('blur', () => {
+            mouseCurrentlyDown = false;
+            keyCurrentlyDown = false;
         });
     </script>
 </body>
