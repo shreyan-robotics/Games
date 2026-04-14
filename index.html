@@ -4,14 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🎣 Fishing Game</title>
-    <subtitle>By Shreyan Chundi</subtitle>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
- 
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(to bottom, #87CEEB 0%, #4A90E2 50%, #2E5C8A 100%);
@@ -21,7 +20,7 @@
             align-items: center;
             padding: 20px;
         }
- 
+
         .game-container {
             background: rgba(255, 255, 255, 0.95);
             border-radius: 20px;
@@ -31,20 +30,27 @@
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
             text-align: center;
         }
- 
+
         h1 {
             color: #2E5C8A;
-            margin-bottom: 20px;
+            margin-bottom: 5px;
             font-size: 2.5em;
         }
- 
+
+        .subtitle {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 15px;
+            font-style: italic;
+        }
+
         .score {
             font-size: 1.5em;
             color: #2E5C8A;
             margin: 20px 0;
             font-weight: bold;
         }
- 
+
         .game-area {
             margin: 30px 0;
             min-height: 200px;
@@ -53,25 +59,25 @@
             justify-content: center;
             align-items: center;
         }
- 
+
         .message {
             font-size: 1.3em;
             margin: 20px 0;
             color: #333;
             min-height: 60px;
         }
- 
+
         .fish-display {
             font-size: 4em;
             margin: 20px 0;
             animation: bounce 0.5s ease;
         }
- 
+
         @keyframes bounce {
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-20px); }
         }
- 
+
         button {
             background: #4A90E2;
             color: white;
@@ -83,52 +89,52 @@
             transition: all 0.3s ease;
             font-weight: bold;
         }
- 
+
         button:hover {
             background: #357ABD;
             transform: scale(1.05);
         }
- 
+
         button:active {
             transform: scale(0.95);
         }
- 
+
         button:disabled {
             background: #ccc;
             cursor: not-allowed;
             transform: scale(1);
         }
- 
+
         .catch-button {
             background: #FF6B6B;
             font-size: 1.5em;
             padding: 20px 60px;
             animation: pulse 0.5s ease infinite;
         }
- 
+
         .catch-button:hover {
             background: #FF5252;
         }
- 
+
         @keyframes pulse {
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.05); }
         }
- 
+
         .result {
             font-size: 1.4em;
             font-weight: bold;
             margin: 20px 0;
         }
- 
+
         .success {
             color: #4CAF50;
         }
- 
+
         .failure {
             color: #FF6B6B;
         }
- 
+
         .timer-bar {
             width: 100%;
             height: 10px;
@@ -138,14 +144,14 @@
             overflow: hidden;
             display: none;
         }
- 
+
         .timer-fill {
             height: 100%;
             background: linear-gradient(to right, #4CAF50, #FFC107, #FF6B6B);
             width: 100%;
             transition: width linear;
         }
- 
+
         .instructions {
             color: #666;
             margin: 20px 0;
@@ -156,6 +162,7 @@
 <body>
     <div class="game-container">
         <h1>🎣 Fishing Game</h1>
+        <div class="subtitle">By Shreyan Chundi</div>
         <div class="score">Score: <span id="score">0</span></div>
         
         <div class="instructions">
@@ -163,7 +170,7 @@
             You have <strong>0.5 seconds</strong> to react!<br>
             <span style="color: #FF6B6B; font-size: 0.9em;">⚠️ No holding allowed - you must click AFTER the fish appears!</span>
         </div>
- 
+
         <div class="game-area">
             <div class="message" id="message">Ready to fish?</div>
             <div class="fish-display" id="fish"></div>
@@ -172,10 +179,10 @@
             </div>
             <div class="result" id="result"></div>
         </div>
- 
+
         <button id="actionButton">🎣 Cast Line</button>
     </div>
- 
+
     <script>
         const fishTypes = [
             "🐟 Bass",
@@ -185,19 +192,19 @@
             "🐙 Octopus",
             "🦑 Squid"
         ];
- 
+
         let score = 0;
         let gameState = 'ready'; // ready, waiting, biting
         let biteTime = 0;
         let inputWasDownBeforeBite = false; // Track if button/key was held BEFORE fish appeared
         let hasClickedAfterBite = false; // Track if they've clicked since fish appeared
- 
+
         // Track current input states
         let mouseCurrentlyDown = false;
         let keyCurrentlyDown = false;
- 
+
         const button = document.getElementById('actionButton');
- 
+
         function castLine() {
             gameState = 'waiting';
             document.getElementById('message').textContent = 'Line cast! Waiting for a bite...';
@@ -205,15 +212,15 @@
             document.getElementById('result').textContent = '';
             button.disabled = true;
             document.getElementById('timerBar').style.display = 'none';
- 
+
             // Random wait time between 2-6 seconds
             const waitTime = Math.random() * 4000 + 2000;
- 
+
             setTimeout(() => {
                 fishBites();
             }, waitTime);
         }
- 
+
         function fishBites() {
             gameState = 'biting';
             const fish = fishTypes[Math.floor(Math.random() * fishTypes.length)];
@@ -237,9 +244,9 @@
             setTimeout(() => {
                 timerFill.style.width = '0%';
             }, 10);
- 
+
             biteTime = Date.now();
- 
+
             // Auto-fail after 0.5 seconds
             setTimeout(() => {
                 if (gameState === 'biting') {
@@ -247,7 +254,7 @@
                 }
             }, 500);
         }
- 
+
         function attemptCatch() {
             if (gameState !== 'biting') return;
             
@@ -257,7 +264,7 @@
             
             const reactionTime = (Date.now() - biteTime) / 1000;
             const fish = document.getElementById('fish').textContent;
- 
+
             // Check if they were cheating by holding before fish appeared
             if (inputWasDownBeforeBite) {
                 document.getElementById('result').innerHTML = `<span class="failure">❌ CHEATER! You were holding before the fish! The ${fish} got away!</span>`;
@@ -265,7 +272,7 @@
                 resetGame();
                 return;
             }
- 
+
             // Legitimate catch attempt
             if (reactionTime <= 0.5) {
                 score++;
@@ -276,10 +283,10 @@
                 document.getElementById('result').innerHTML = `<span class="failure">❌ Too slow! The ${fish} got away! (${reactionTime.toFixed(3)}s)</span>`;
                 document.getElementById('message').textContent = 'Better luck next time!';
             }
- 
+
             resetGame();
         }
- 
+
         function missedFish(fish) {
             if (hasClickedAfterBite) return; // Already handled
             
@@ -287,7 +294,7 @@
             document.getElementById('message').textContent = 'Better luck next time!';
             resetGame();
         }
- 
+
         function resetGame() {
             gameState = 'ready';
             button.textContent = '🎣 Cast Line';
@@ -299,16 +306,16 @@
                 document.getElementById('fish').textContent = '';
             }, 2000);
         }
- 
+
         // Mouse tracking
         button.addEventListener('mousedown', (e) => {
             mouseCurrentlyDown = true;
         });
- 
+
         button.addEventListener('mouseup', (e) => {
             mouseCurrentlyDown = false;
         });
- 
+
         // Click handler
         button.addEventListener('click', (e) => {
             if (gameState === 'ready') {
@@ -317,7 +324,7 @@
                 attemptCatch();
             }
         });
- 
+
         // Keyboard tracking
         document.addEventListener('keydown', (e) => {
             if (e.code === 'Space' || e.code === 'Enter') {
@@ -326,7 +333,7 @@
                 keyCurrentlyDown = true;
             }
         });
- 
+
         document.addEventListener('keyup', (e) => {
             if (e.code === 'Space' || e.code === 'Enter') {
                 keyCurrentlyDown = false;
@@ -341,12 +348,12 @@
                 }
             }
         });
- 
+
         // Track when mouse leaves button
         button.addEventListener('mouseleave', () => {
             mouseCurrentlyDown = false;
         });
- 
+
         // Track focus loss
         window.addEventListener('blur', () => {
             mouseCurrentlyDown = false;
@@ -355,3 +362,4 @@
     </script>
 </body>
 </html>
+           
