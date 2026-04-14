@@ -159,7 +159,7 @@
         
         <div class="instructions">
             Cast your line and click the button when a fish bites!<br>
-            You have <strong>1.5 seconds</strong> to react!
+            You have <strong> 0.5 seconds</strong> to react!
         </div>
 
         <div class="game-area">
@@ -241,14 +241,14 @@
                 if (gameState === 'biting') {
                     missedFish(fish);
                 }
-            }, 1500);
+            }, 500);
         }
 
         function catchFish() {
             const reactionTime = (Date.now() - biteTime) / 1000;
             const fish = document.getElementById('fish').textContent;
 
-            if (reactionTime <= 1.5) {
+            if (reactionTime <= 0.5) {
                 score++;
                 document.getElementById('score').textContent = score;
                 document.getElementById('result').innerHTML = `<span class="success">✅ You caught the ${fish}! Nice catch! (${reactionTime.toFixed(2)}s)</span>`;
