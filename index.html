@@ -599,7 +599,7 @@
 
         <div class="message-area">
             <div class="instructions">
-                You have <strong>1 second</strong> to react!
+                You have <strong>0.5 seconds</strong> to react! (1s after 50 points 🏆)
                 <div class="warning">⚠️ No holding - click AFTER the fish bites!</div>
             </div>
             <div class="timer-bar" id="timerBar">
@@ -708,6 +708,9 @@
             inputWasDownBeforeBite = mouseCurrentlyDown || keyCurrentlyDown;
             hasClickedAfterBite = false;
             
+            const timeLimit = score >= 50 ? 1000 : 500;
+            const timeLimitSec = score >= 50 ? 1.0 : 0.5;
+
             bobber.classList.add('bite');
             
             document.getElementById('message').textContent = '🔥 FISH BITING!';
@@ -721,7 +724,7 @@
             
             document.getElementById('timerBar').style.display = 'block';
             const timerFill = document.getElementById('timerFill');
-            timerFill.style.transition = 'width 1s linear';
+            timerFill.style.transition = `width ${timeLimitSec}s linear`;
             timerFill.style.width = '100%';
             
             setTimeout(() => {
@@ -734,7 +737,7 @@
                 if (gameState === 'biting') {
                     missedFish(fishName);
                 }
-            }, 1000);
+            }, timeLimit);
         }
 
         function attemptCatch() {
@@ -744,6 +747,7 @@
             hasClickedAfterBite = true;
             
             const reactionTime = (Date.now() - biteTime) / 1000;
+            const timeLimitSec = score >= 50 ? 1.0 : 0.5;
             const fishEmoji = document.getElementById('fish').textContent;
             const fishIndex = fishTypes.indexOf(fishEmoji);
             const fishName = fishNames[fishIndex];
@@ -755,10 +759,14 @@
                 return;
             }
 
-            if (reactionTime <= 1.0) {
+            if (reactionTime <= timeLimitSec) {
                 score++;
                 document.getElementById('score').textContent = score;
-                document.getElementById('result').innerHTML = `<span class="success">✅ Caught ${fishName}! (${reactionTime.toFixed(3)}s)</span>`;
+                if (score === 50) {
+                    document.getElementById('result').innerHTML = `<span class="success">🎉 50 POINTS! Now you have 1 second to react!</span>`;
+                } else {
+                    document.getElementById('result').innerHTML = `<span class="success">✅ Caught ${fishName}! (${reactionTime.toFixed(3)}s)</span>`;
+                }
                 document.getElementById('message').textContent = '🎉 Nice catch!';
             } else {
                 document.getElementById('result').innerHTML = `<span class="failure">❌ ${fishName} got away! (${reactionTime.toFixed(3)}s)</span>`;
