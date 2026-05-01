@@ -358,6 +358,38 @@
             transform: rotate(-35deg);
             transform-origin: left center;
             border-radius: 2px;
+            transition: background 0.5s, box-shadow 0.5s;
+        }
+
+        .fishing-rod.upgraded {
+            background: #C0C0C0;
+            box-shadow: 0 0 8px 3px gold;
+            height: 4px;
+        }
+
+        /* Upgrade banner */
+        .upgrade-banner {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: gold;
+            color: #333;
+            font-size: 1.5em;
+            font-weight: bold;
+            padding: 20px 40px;
+            border-radius: 15px;
+            border: 4px solid #FFA500;
+            z-index: 999;
+            text-align: center;
+            animation: popIn 0.5s ease;
+        }
+
+        @keyframes popIn {
+            0% { transform: translate(-50%, -50%) scale(0); }
+            70% { transform: translate(-50%, -50%) scale(1.1); }
+            100% { transform: translate(-50%, -50%) scale(1); }
         }
 
         .fishing-rod.casting {
@@ -644,6 +676,7 @@
     <div class="button-area">
         <button id="actionButton">🎣 Cast Line</button>
     </div>
+    <div class="upgrade-banner" id="upgradeBanner">🎣✨ NEW ROD UNLOCKED! ✨🎣<br><small>Silver rod + 1 second reaction time!</small></div>
 
     <script>
         const fishTypes = [
@@ -763,11 +796,18 @@
                 score++;
                 document.getElementById('score').textContent = score;
                 if (score === 50) {
-                    document.getElementById('result').innerHTML = `<span class="success">🎉 50 POINTS! Now you have 1 second to react!</span>`;
+                    document.getElementById('result').innerHTML = `<span class="success">🎉 50 POINTS! New rod unlocked!</span>`;
+                    document.getElementById('message').textContent = '🎉 Nice catch!';
+                    // Show upgrade banner
+                    const banner = document.getElementById('upgradeBanner');
+                    banner.style.display = 'block';
+                    // Upgrade the rod
+                    document.getElementById('fishingRod').classList.add('upgraded');
+                    setTimeout(() => { banner.style.display = 'none'; }, 3000);
                 } else {
                     document.getElementById('result').innerHTML = `<span class="success">✅ Caught ${fishName}! (${reactionTime.toFixed(3)}s)</span>`;
+                    document.getElementById('message').textContent = '🎉 Nice catch!';
                 }
-                document.getElementById('message').textContent = '🎉 Nice catch!';
             } else {
                 document.getElementById('result').innerHTML = `<span class="failure">❌ ${fishName} got away! (${reactionTime.toFixed(3)}s)</span>`;
                 document.getElementById('message').textContent = 'Too slow!';
