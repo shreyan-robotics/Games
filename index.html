@@ -114,6 +114,76 @@
             border-bottom: 3px solid #558B2F;
         }
 
+        /* Trees */
+        .tree {
+            position: absolute;
+            bottom: 55%;
+            z-index: 5;
+        }
+
+        .tree-left {
+            left: 10%;
+        }
+
+        .tree-right {
+            right: 15%;
+        }
+
+        .tree-center-left {
+            left: 30%;
+        }
+
+        .tree-center-right {
+            right: 35%;
+        }
+
+        .trunk {
+            width: 25px;
+            height: 70px;
+            background: #8B4513;
+            margin: 0 auto;
+            border-radius: 3px;
+            border: 2px solid #654321;
+        }
+
+        .tree-top {
+            width: 0;
+            height: 0;
+            border-left: 45px solid transparent;
+            border-right: 45px solid transparent;
+            border-bottom: 70px solid #2E7D32;
+            position: relative;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-bottom: -10px;
+        }
+
+        .tree-top::before {
+            content: '';
+            position: absolute;
+            bottom: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 38px solid transparent;
+            border-right: 38px solid transparent;
+            border-bottom: 60px solid #388E3C;
+        }
+
+        .tree-top::after {
+            content: '';
+            position: absolute;
+            bottom: -35px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 32px solid transparent;
+            border-right: 32px solid transparent;
+            border-bottom: 50px solid #43A047;
+        }
+
         /* Person sitting on log */
         .fishing-scene {
             position: absolute;
@@ -175,26 +245,27 @@
 
         .hat {
             position: absolute;
-            top: -20px;
+            top: -10px;
             left: 50%;
             transform: translateX(-50%);
-            width: 50px;
-            height: 15px;
+            width: 55px;
+            height: 14px;
             background: #D2691E;
-            border-radius: 25px 25px 0 0;
+            border-radius: 28px 28px 0 0;
             border: 3px solid #333;
+            border-bottom: none;
         }
 
         .hat::after {
             content: '';
             position: absolute;
-            top: -10px;
+            top: -8px;
             left: 50%;
             transform: translateX(-50%);
-            width: 30px;
-            height: 15px;
+            width: 32px;
+            height: 12px;
             background: #D2691E;
-            border-radius: 15px 15px 0 0;
+            border-radius: 16px 16px 0 0;
             border: 3px solid #333;
             border-bottom: none;
         }
@@ -279,8 +350,8 @@
         /* Fishing rod */
         .fishing-rod {
             position: absolute;
-            top: 70px;
-            right: -60px;
+            top: 75px;
+            right: -55px;
             width: 100px;
             height: 3px;
             background: #8B4513;
@@ -310,11 +381,12 @@
 
         .fishing-line.active {
             animation: lineDown 0.5s ease forwards;
+            opacity: 0; /* Hide line when in water */
         }
 
         @keyframes lineDown {
             from { height: 0; }
-            to { height: 120px; }
+            to { height: 180px; }
         }
 
         .bobber {
@@ -340,9 +412,8 @@
         /* Fish display area */
         .fish-area {
             position: absolute;
-            bottom: 25%;
-            left: 50%;
-            transform: translateX(-50%);
+            bottom: 30%;
+            right: 35%;
             text-align: center;
             z-index: 5;
         }
@@ -354,9 +425,18 @@
         }
 
         @keyframes fishJump {
-            0% { transform: translateY(20px) scale(0.5); opacity: 0; }
-            50% { transform: translateY(-20px) scale(1.1); }
-            100% { transform: translateY(0) scale(1); opacity: 1; }
+            0% { transform: translateY(20px) scale(0.5) rotate(0deg); opacity: 0; }
+            50% { transform: translateY(-20px) scale(1.1) rotate(-15deg); }
+            100% { transform: translateY(0) scale(1) rotate(-20deg); opacity: 1; }
+        }
+
+        .fish-display.pulling {
+            animation: fishPull 0.3s ease infinite;
+        }
+
+        @keyframes fishPull {
+            0%, 100% { transform: translateY(0) rotate(-20deg); }
+            50% { transform: translateY(-8px) rotate(-25deg); }
         }
 
         .message-area {
@@ -499,6 +579,24 @@
             <div class="grass"></div>
         </div>
 
+        <!-- Trees -->
+        <div class="tree tree-left">
+            <div class="tree-top"></div>
+            <div class="trunk"></div>
+        </div>
+        <div class="tree tree-right">
+            <div class="tree-top"></div>
+            <div class="trunk"></div>
+        </div>
+        <div class="tree tree-center-left">
+            <div class="tree-top"></div>
+            <div class="trunk"></div>
+        </div>
+        <div class="tree tree-center-right">
+            <div class="tree-top"></div>
+            <div class="trunk"></div>
+        </div>
+
         <div class="message-area">
             <div class="instructions">
                 You have <strong>0.5 seconds</strong> to react!
@@ -613,7 +711,10 @@
             bobber.classList.add('bite');
             
             document.getElementById('message').textContent = '🔥 FISH BITING!';
-            document.getElementById('fish').textContent = fish;
+            const fishDisplay = document.getElementById('fish');
+            fishDisplay.textContent = fish;
+            fishDisplay.classList.add('pulling');
+            
             button.textContent = '🎯 CATCH NOW!';
             button.disabled = false;
             button.className = 'catch-button';
@@ -685,8 +786,11 @@
             bobber.classList.remove('bite');
             fishingLine.classList.remove('active');
             
+            const fishDisplay = document.getElementById('fish');
+            fishDisplay.classList.remove('pulling');
+            
             setTimeout(() => {
-                document.getElementById('fish').textContent = '';
+                fishDisplay.textContent = '';
             }, 2000);
         }
 
@@ -709,16 +813,19 @@
         document.addEventListener('keydown', (e) => {
             if (e.code === 'Space' || e.code === 'Enter') {
                 e.preventDefault();
-                if (e.repeat) return;
+                if (e.repeat) return; // Ignore key repeat
+                if (keyCurrentlyDown) return; // Already pressed, ignore
                 keyCurrentlyDown = true;
             }
         });
 
         document.addEventListener('keyup', (e) => {
             if (e.code === 'Space' || e.code === 'Enter') {
+                const wasDown = keyCurrentlyDown;
                 keyCurrentlyDown = false;
                 
-                if (!button.disabled) {
+                // Only trigger if key was just released and button is enabled
+                if (wasDown && !button.disabled && gameState !== 'waiting') {
                     if (gameState === 'ready') {
                         castLine();
                     } else if (gameState === 'biting') {
