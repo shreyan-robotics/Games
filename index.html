@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🎣 Fishing Game</title>
+    <title> hi </title>
     <style>
         * {
             margin: 0;
@@ -599,7 +600,7 @@
 
         <div class="message-area">
             <div class="instructions">
-                You have <strong>0.5 seconds</strong> to react!
+                You have <strong>1 second</strong> to react!
                 <div class="warning">⚠️ No holding - click AFTER the fish bites!</div>
             </div>
             <div class="timer-bar" id="timerBar">
@@ -721,7 +722,7 @@
             
             document.getElementById('timerBar').style.display = 'block';
             const timerFill = document.getElementById('timerFill');
-            timerFill.style.transition = 'width 0.5s linear';
+            timerFill.style.transition = 'width 1s linear';
             timerFill.style.width = '100%';
             
             setTimeout(() => {
@@ -734,7 +735,7 @@
                 if (gameState === 'biting') {
                     missedFish(fishName);
                 }
-            }, 500);
+            }, 1000);
         }
 
         function attemptCatch() {
@@ -755,7 +756,7 @@
                 return;
             }
 
-            if (reactionTime <= 0.5) {
+            if (reactionTime <= 1.0) {
                 score++;
                 document.getElementById('score').textContent = score;
                 document.getElementById('result').innerHTML = `<span class="success">✅ Caught ${fishName}! (${reactionTime.toFixed(3)}s)</span>`;
